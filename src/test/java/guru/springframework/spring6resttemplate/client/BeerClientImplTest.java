@@ -27,6 +27,7 @@ class BeerClientImplTest {
                 .build();
 
         BeerDTO savedDto = beerClient.createBeer(newDto);
+
         assertNotNull(savedDto);
     }
 

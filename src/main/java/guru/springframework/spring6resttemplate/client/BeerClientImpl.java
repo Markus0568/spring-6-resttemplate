@@ -1,5 +1,6 @@
 package guru.springframework.spring6resttemplate.client;
 
+import java.net.URI;
 import java.util.UUID;
 
 import guru.springframework.spring6resttemplate.model.BeerDTO;
@@ -25,9 +26,10 @@ public class BeerClientImpl implements BeerClient {
     public BeerDTO createBeer(BeerDTO newDto) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        ResponseEntity<BeerDTO> responseEntity = restTemplate.postForEntity(GET_BEER_PATH, newDto, BeerDTO.class);
+//        ResponseEntity<BeerDTO> responseEntity = restTemplate.postForEntity(GET_BEER_PATH, newDto, BeerDTO.class);
+        URI uri = restTemplate.postForLocation(GET_BEER_PATH, newDto);
 
-        return null;
+        return restTemplate.getForObject(uri.getPath(), BeerDTO.class);
     }
 
     @Override
