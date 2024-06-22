@@ -22,6 +22,15 @@ public class BeerClientImpl implements BeerClient {
     private static final String GET_BEER_BY_ID_PATH = "/api/v1/beer/{beerId}";
 
     @Override
+    public BeerDTO createBeer(BeerDTO newDto) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        ResponseEntity<BeerDTO> responseEntity = restTemplate.postForEntity(GET_BEER_PATH, newDto, BeerDTO.class);
+
+        return null;
+    }
+
+    @Override
     public BeerDTO getBeerById(UUID beerId) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
