@@ -1,5 +1,6 @@
 package guru.springframework.spring6resttemplate.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
@@ -15,6 +16,25 @@ import org.springframework.data.domain.Page;
 class BeerClientImplTest {
     @Autowired
     BeerClientImpl beerClient;
+
+    @Test
+    void testUpdateBeer() {
+        BeerDTO newDto = BeerDTO.builder()
+                .price(new BigDecimal("10.99"))
+                .beerName("Mango Bobs 2")
+                .beerStyle(BeerStyle.IPA)
+                .quantityOnHand(500)
+                .upc("12345")
+                .build();
+
+        BeerDTO beerDto = beerClient.createBeer(newDto);
+
+        final String newName = "Mango Bobs 3";
+        beerDto.setBeerName(newName);
+        BeerDTO updatedBeer = beerClient.updateBeer(beerDto);
+
+        assertEquals(newName, updatedBeer.getBeerName());
+    }
 
     @Test
     void testCreateBeer() {
