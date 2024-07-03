@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToUriTemplate;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.math.BigDecimal;
@@ -54,6 +55,22 @@ class BeerClientMockTest {
         server = MockRestServiceServer.bindTo(restTemplate).build();
         when(mockRestTemplateBuilder.build()).thenReturn(restTemplate);
         beerClient = new BeerClientImpl(mockRestTemplateBuilder);
+    }
+
+    @Test
+    void testGetById() throws JsonProcessingException {
+        BeerDTO beerDto = getBeerDto();
+
+        String response = objectMapper.writeValueAsString(beerDto);
+
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(URL +
+                        BeerClientImpl.GET_BEER_BY_ID_PATH, beerDto.getId()))
+                .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+
+        BeerDTO responseDto = beerClient.getBeerById(beerDto.getId());
+
+        assertThat(responseDto.getId()).isEqualTo(beerDto.getId());
     }
 
     @Test
