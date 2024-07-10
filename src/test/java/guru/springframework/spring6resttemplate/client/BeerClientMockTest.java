@@ -6,6 +6,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToUriTemplate;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withAccepted;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.math.BigDecimal;
@@ -62,7 +63,20 @@ class BeerClientMockTest {
         when(mockRestTemplateBuilder.build()).thenReturn(restTemplate);
         beerClient = new BeerClientImpl(mockRestTemplateBuilder);
         beerDto = getBeerDto();
-        dtoJson= objectMapper.writeValueAsString(beerDto);
+        dtoJson = objectMapper.writeValueAsString(beerDto);
+    }
+
+    @Test
+    void testUpdateBeer() {
+        server.expect(method(HttpMethod.PUT))
+                .andExpect(requestToUriTemplate(URL + BeerClientImpl.GET_BEER_BY_ID_PATH,
+                        beerDto.getId()))
+                .andRespond(withNoContent());
+
+        mockGetOperation();
+
+        BeerDTO responseDto = beerClient.updateBeer(beerDto);
+        assertThat(responseDto.getId()).isEqualTo(beerDto.getId());
     }
 
     @Test
@@ -75,10 +89,7 @@ class BeerClientMockTest {
                         BeerClientImpl.GET_BEER_PATH))
                 .andRespond(withAccepted().location(uri));
 
-        server.expect(method(HttpMethod.GET))
-                .andExpect(requestToUriTemplate(URL +
-                        BeerClientImpl.GET_BEER_BY_ID_PATH, beerDto.getId()))
-                .andRespond(withSuccess(dtoJson, MediaType.APPLICATION_JSON));
+        mockGetOperation();
 
         BeerDTO responseDto = beerClient.createBeer(beerDto);
 
@@ -86,11 +97,8 @@ class BeerClientMockTest {
     }
 
     @Test
-    void testGetById(){
-        server.expect(method(HttpMethod.GET))
-                .andExpect(requestToUriTemplate(URL +
-                        BeerClientImpl.GET_BEER_BY_ID_PATH, beerDto.getId()))
-                .andRespond(withSuccess(dtoJson, MediaType.APPLICATION_JSON));
+    void testGetById() {
+        mockGetOperation();
 
         BeerDTO responseDto = beerClient.getBeerById(beerDto.getId());
 
@@ -109,7 +117,7 @@ class BeerClientMockTest {
         assertThat(beerDtos.getContent()).isNotEmpty();
     }
 
-    BeerDTO getBeerDto() {
+    private BeerDTO getBeerDto() {
         return BeerDTO.builder()
                 .id(UUID.randomUUID())
                 .price(new BigDecimal("10.99"))
@@ -120,7 +128,14 @@ class BeerClientMockTest {
                 .build();
     }
 
-    BeerDTOPageImpl getPage() {
+    private BeerDTOPageImpl getPage() {
         return new BeerDTOPageImpl(Arrays.asList(getBeerDto()), 1, 25, 1);
+    }
+
+    private void mockGetOperation() {
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(URL +
+                        BeerClientImpl.GET_BEER_BY_ID_PATH, beerDto.getId()))
+                .andRespond(withSuccess(dtoJson, MediaType.APPLICATION_JSON));
     }
 }
