@@ -5,9 +5,11 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToUriTemplate;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withAccepted;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestClientTest
 @Import(RestTemplateBuilderConfig.class)
@@ -58,9 +61,30 @@ class BeerClientMockTest {
     }
 
     @Test
+    void testCreateBeer() throws JsonProcessingException {
+        BeerDTO beerDto = getBeerDto();
+        String response = objectMapper.writeValueAsString(beerDto);
+        URI uri = UriComponentsBuilder.fromPath(BeerClientImpl.GET_BEER_BY_ID_PATH)
+                .build(beerDto.getId());
+
+        server.expect(method(HttpMethod.POST))
+                .andExpect(requestTo(URL +
+                        BeerClientImpl.GET_BEER_PATH))
+                .andRespond(withAccepted().location(uri));
+
+        server.expect(method(HttpMethod.GET))
+                .andExpect(requestToUriTemplate(URL +
+                        BeerClientImpl.GET_BEER_BY_ID_PATH, beerDto.getId()))
+                .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+
+        BeerDTO responseDto = beerClient.createBeer(beerDto);
+
+        assertThat(responseDto.getId()).isEqualTo(beerDto.getId());
+    }
+
+    @Test
     void testGetById() throws JsonProcessingException {
         BeerDTO beerDto = getBeerDto();
-
         String response = objectMapper.writeValueAsString(beerDto);
 
         server.expect(method(HttpMethod.GET))
