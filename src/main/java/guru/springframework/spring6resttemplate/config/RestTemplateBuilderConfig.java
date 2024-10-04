@@ -18,34 +18,28 @@ public class RestTemplateBuilderConfig {
     @Value("${rest.template.rootUrl}")
     String rootUrl;
 
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
-
-    public RestTemplateBuilderConfig(ClientRegistrationRepository clientRegistrationRepository,
-                                     OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
-        this.clientRegistrationRepository = clientRegistrationRepository;
-        this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
-    }
-
     @Bean
-    OAuth2AuthorizedClientManager oauth2AuthorizedClientManager() {
+    OAuth2AuthorizedClientManager oauth2AuthorizedClientManager(
+            ClientRegistrationRepository clientRegistrationRepository,
+            OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
         OAuth2AuthorizedClientProvider authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder()
                 .clientCredentials()
                 .build();
 
         AuthorizedClientServiceOAuth2AuthorizedClientManager authorizedClientManager =
                 new AuthorizedClientServiceOAuth2AuthorizedClientManager(
-                clientRegistrationRepository, oAuth2AuthorizedClientService);
+                        clientRegistrationRepository, oAuth2AuthorizedClientService);
         authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
         return authorizedClientManager;
     }
 
     @Bean
-    RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer) {
+    RestTemplateBuilder restTemplateBuilder(RestTemplateBuilderConfigurer configurer,
+                                            OAuthClientInterceptor interceptor) {
         assert rootUrl != null;
 
         return configurer.configure(new RestTemplateBuilder())
-
+                .additionalInterceptors(interceptor)
                 .uriTemplateHandler(new DefaultUriBuilderFactory(rootUrl));
     }
 }
